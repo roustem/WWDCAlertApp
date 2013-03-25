@@ -15,7 +15,7 @@
 
 #define kCacheKey @"LastFetchedWWDCWebPage"
 #define kLastAccessDate @"LastAccessedDate"
-#define kRefreshRate 120 //2 mins
+#define kRefreshRate 60
 
 @interface WARefreshViewController () <CLLocationManagerDelegate>
 
@@ -108,7 +108,13 @@
 
 - (void)handleFailureToLoadPage:(NSError *)error {
     self.activityView.hidden = YES;
-    [self alert:YES];
+	NSLog(@"Error loading page: %@", error);
+	
+	// Do not disturb during network timeouts/failues, but do alert on 404s incase the page is moved.
+	// Sadly NSUnderlyingErrorKey is nil so we need to parse the description. 
+	if ([error.description rangeOfString:@"got 404"].location != NSNotFound) {
+		[self alert:YES];
+	}
 }
 
 - (void)alert:(BOOL)forErrorToLoad {
