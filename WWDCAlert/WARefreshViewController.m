@@ -15,7 +15,7 @@
 
 #define kCacheKey @"LastFetchedWWDCWebPage"
 #define kLastAccessDate @"LastAccessedDate"
-#define kRefreshRate 60
+#define kRefreshRate 45
 
 @interface WARefreshViewController () <CLLocationManagerDelegate>
 
@@ -65,7 +65,14 @@
     NSLog(@"Refreshing...");
 
     self.activityView.hidden = NO;
-    
+
+	self.lastFetchedWebPage = nil;
+	self.lastAccessedDate = nil;
+	
+	[[NSUserDefaults standardUserDefaults] removeObjectForKey:kCacheKey];
+	[[NSUserDefaults standardUserDefaults] removeObjectForKey:kLastAccessDate];
+
+	
     NSURLRequest *request = [NSURLRequest requestWithURL:self.url];
 
     AFHTTPClient *client = [AFHTTPClient new];
@@ -89,13 +96,11 @@
 - (void)handlePageLoad:(NSData *)responseObject {
     NSString *newPage = [[NSString alloc] initWithData:responseObject encoding:NSUTF8StringEncoding];
     
-    if (self.lastFetchedWebPage && self.lastAccessedDate &&
-        ![newPage isEqualToString:self.lastFetchedWebPage]) {
+    if (self.lastFetchedWebPage && self.lastAccessedDate && ![newPage isEqualToString:self.lastFetchedWebPage]) {
         [self alert:NO];
     }
 
-	// Current page has a single 2013 reference related to copyrights. If it changes, be noisy.
-	if ([newPage rangeOfString:@"2013"].location != 6176) {
+	if ([newPage rangeOfString:@"wwdc2012-june"].location == NSNotFound) {
 		[self alert:NO];
 		[self alert:NO];
 		[self alert:NO];
